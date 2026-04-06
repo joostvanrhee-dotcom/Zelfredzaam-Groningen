@@ -1,26 +1,61 @@
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@source "../**/*.{js,ts,jsx,tsx,mdx}";
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-primary: #829362;
+  --color-secondary: #9cc47c;
+  --color-highlight: #9cc47c;
+  --color-background: #EAF7DE;
+  --color-foreground: #1a1a1a;
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+}
+
+/* Leaflet fixes — Tailwind reset overschrijft Leaflet transitions */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* Tailwind v4 preflight zet img { opacity: 0 } via transitions — forceer tiles zichtbaar */
+img.leaflet-tile {
+  opacity: 1 !important;
+  transition: none !important;
+}
+
+.leaflet-marker-icon {
+  opacity: 1 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.leaflet-marker-icon.custom-marker,
+.leaflet-marker-icon.custom-marker-approx {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.leaflet-fade-anim .leaflet-tile {
+  opacity: 1 !important;
+  will-change: auto !important;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #9cc47c;
+  border-radius: 3px;
 }

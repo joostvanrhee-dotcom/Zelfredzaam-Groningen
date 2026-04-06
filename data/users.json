@@ -1,0 +1,11 @@
+[
+  {
+    "id": "user_1775291893089_ap1k27",
+    "naam": "Joost van Rhee",
+    "email": "joostvanrhee@outlook.com",
+    "wachtwoordHash": "$2b$10$o48jCgbyw4XFsWtrtLq8sOTZWkr.6ba4NN0CzApbRZ9GUll17upN6",
+    "createdAt": "2026-04-04T08:38:13.168Z",
+    "resetToken": "fba16c544ca63d41e563f02f886e9e09f8b64e7e06021c47ab4b91966dd1ac28",
+    "resetTokenVerloopt": "2026-04-05T18:35:32.839Z"
+  }
+]

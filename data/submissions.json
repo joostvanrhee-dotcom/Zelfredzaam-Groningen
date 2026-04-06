@@ -1,0 +1,55 @@
+[
+  {
+    "id": "sub_1774277305294_cy8s2o",
+    "soort": "nieuw",
+    "naam": "Test Joost ",
+    "type": "Joost",
+    "filters": [
+      "wonen"
+    ],
+    "gemeente": "Groningen",
+    "adres": "Cortinghlaan 27a",
+    "beschrijving": "Hier won ik",
+    "doelgroep": "ikzelf",
+    "website": "https://www.hema.nl/koken-tafelen/koken/pannen/wokpannen/wok-28cm-milano-pfas-vrij-80120004.html",
+    "telefoon": "asdf",
+    "emailInitiatief": "joostvanrhee@outlook.com",
+    "indienerNaam": "joost van rhee",
+    "indienerEmail": "joostvanrhee@outlook.com",
+    "status": "goedgekeurd",
+    "createdAt": "2026-03-23T14:48:25.294Z"
+  },
+  {
+    "id": "sub_1774278179640_40j13v",
+    "soort": "nieuw",
+    "naam": "test",
+    "type": "test",
+    "filters": [
+      "wonen"
+    ],
+    "gemeente": "Groningen",
+    "postcode": "9716HS",
+    "adres": "cortinghlaan 27a",
+    "beschrijving": "asdfasdf",
+    "doelgroep": "asdfasdf",
+    "website": "asdfsf.com",
+    "telefoon": "asdfsadf",
+    "emailInitiatief": "joostvanrhee@outlook.com",
+    "indienerNaam": "joost van rhee",
+    "indienerEmail": "joostvanrhee@outlook.com",
+    "status": "goedgekeurd",
+    "createdAt": "2026-03-23T15:02:59.640Z"
+  },
+  {
+    "id": "sub_1774278500662_wkqjsc",
+    "soort": "afmelding",
+    "initiatiefId": 17,
+    "naam": "test",
+    "filters": [],
+    "toelichting": "asdf",
+    "indienerNaam": "joost van rhee",
+    "indienerEmail": "joostvanrhee@outlook.com",
+    "status": "goedgekeurd",
+    "createdAt": "2026-03-23T15:08:20.662Z"
+  }
+]
