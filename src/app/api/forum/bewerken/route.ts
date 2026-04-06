@@ -1,28 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import * as fs from 'fs';
-import * as path from 'path';
 import type { ForumPost } from '@/lib/types';
 import { getUserFromRequest } from '@/lib/auth';
+import db from '@/lib/db';
 
-const DATA_DIR = path.join(process.cwd(), 'data');
-const FORUM_FILE = path.join(DATA_DIR, 'forum.json');
-
-function ensureDataDir() {
-  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-  if (!fs.existsSync(FORUM_FILE)) fs.writeFileSync(FORUM_FILE, '[]');
-}
-
-function readForum(): ForumPost[] {
-  ensureDataDir();
-  return JSON.parse(fs.readFileSync(FORUM_FILE, 'utf-8'));
-}
-
-function writeForum(data: ForumPost[]) {
-  ensureDataDir();
-  fs.writeFileSync(FORUM_FILE, JSON.stringify(data, null, 2));
-}
-
-// PUT: edit own post
 export async function PUT(req: NextRequest) {
   const user = await getUserFromRequest(req);
   const pw = req.headers.get('x-admin-password');
@@ -38,9 +18,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: 'postId is verplicht' }, { status: 400 });
   }
 
-  const posts = readForum();
-  const post = posts.find((p) => p.id === postId);
-
+  const post = db.prepare('SELECT * FROM forum_posts WHERE id = ?').get(postId) as ForumPost | undefined;
   if (!post) {
     return NextResponse.json({ error: 'Post niet gevonden' }, { status: 404 });
   }
@@ -50,10 +28,15 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: 'Geen toegang' }, { status: 403 });
   }
 
-  if (titel) post.titel = titel;
-  if (inhoud) post.inhoud = inhoud;
-  if (categorie) post.categorie = categorie;
+  const updates: string[] = [];
+  const values: unknown[] = [];
+  if (titel)    { updates.push('titel = ?');    values.push(titel); }
+  if (inhoud)   { updates.push('inhoud = ?');   values.push(inhoud); }
+  if (categorie){ updates.push('categorie = ?'); values.push(categorie); }
 
-  writeForum(posts);
+  if (updates.length > 0) {
+    db.prepare(`UPDATE forum_posts SET ${updates.join(', ')} WHERE id = ?`).run(...values, postId);
+  }
+
   return NextResponse.json({ success: true });
 }

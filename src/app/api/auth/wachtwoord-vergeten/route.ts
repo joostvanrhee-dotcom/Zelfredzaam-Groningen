@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
-import { findUserByEmail, readUsers, writeUsers, generateResetToken } from '@/lib/auth';
+import { findUserByEmail, generateResetToken, updateUser } from '@/lib/auth';
 
 function createTransporter() {
   const host = process.env.SMTP_HOST;
@@ -31,18 +31,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true });
   }
 
-  // Generate token, valid for 1 hour
   const token = generateResetToken();
   const verloopt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
 
-  // Save token to user
-  const users = readUsers();
-  const idx = users.findIndex((u) => u.id === user.id);
-  users[idx].resetToken = token;
-  users[idx].resetTokenVerloopt = verloopt;
-  writeUsers(users);
+  updateUser(user.id, { resetToken: token, resetTokenVerloopt: verloopt });
 
-  // Send email
   const transporter = createTransporter();
   if (!transporter) {
     console.log('SMTP niet geconfigureerd – reset e-mail overgeslagen');

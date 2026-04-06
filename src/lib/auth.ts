@@ -1,13 +1,9 @@
-import * as fs from 'fs';
-import * as path from 'path';
 import * as crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { SignJWT, jwtVerify } from 'jose';
 import { NextRequest } from 'next/server';
 import type { User } from '@/lib/types';
-
-const DATA_DIR = path.join(process.cwd(), 'data');
-const USERS_FILE = path.join(DATA_DIR, 'users.json');
+import db from '@/lib/db';
 
 const COOKIE_NAME = 'veerkracht_token';
 const TOKEN_EXPIRY = '7d';
@@ -18,31 +14,15 @@ function getJwtSecret() {
   return new TextEncoder().encode(secret);
 }
 
-// ── File I/O ──
-
-function ensureFile() {
-  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-  if (!fs.existsSync(USERS_FILE)) fs.writeFileSync(USERS_FILE, '[]');
-}
-
-export function readUsers(): User[] {
-  ensureFile();
-  return JSON.parse(fs.readFileSync(USERS_FILE, 'utf-8'));
-}
-
-export function writeUsers(users: User[]) {
-  ensureFile();
-  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
-}
-
 // ── Lookups ──
 
 export function findUserByEmail(email: string): User | undefined {
-  return readUsers().find((u) => u.email.toLowerCase() === email.toLowerCase().trim());
+  const row = db.prepare('SELECT * FROM users WHERE LOWER(email) = LOWER(?)').get(email.trim()) as User | undefined;
+  return row;
 }
 
 export function findUserById(id: string): User | undefined {
-  return readUsers().find((u) => u.id === id);
+  return db.prepare('SELECT * FROM users WHERE id = ?').get(id) as User | undefined;
 }
 
 // ── Password ──
@@ -93,7 +73,7 @@ export function tokenCookieOptions() {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax' as const,
     path: '/',
-    maxAge: 7 * 24 * 60 * 60, // 7 days
+    maxAge: 7 * 24 * 60 * 60,
   };
 }
 
@@ -117,8 +97,7 @@ export function generateResetToken(): string {
 // ── User creation ──
 
 export async function createUser(naam: string, email: string, password: string): Promise<User> {
-  const users = readUsers();
-  const existing = users.find((u) => u.email.toLowerCase() === email.toLowerCase().trim());
+  const existing = findUserByEmail(email);
   if (existing) throw new Error('Dit e-mailadres is al in gebruik');
 
   const user: User = {
@@ -129,7 +108,18 @@ export async function createUser(naam: string, email: string, password: string):
     createdAt: new Date().toISOString(),
   };
 
-  users.push(user);
-  writeUsers(users);
+  db.prepare(`
+    INSERT INTO users (id, naam, email, wachtwoordHash, createdAt)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(user.id, user.naam, user.email, user.wachtwoordHash, user.createdAt);
+
   return user;
+}
+
+// ── Profile update ──
+
+export function updateUser(id: string, updates: Partial<Pick<User, 'naam' | 'email' | 'wachtwoordHash' | 'resetToken' | 'resetTokenVerloopt'>>) {
+  const fields = Object.keys(updates).map(k => `${k} = ?`).join(', ');
+  const values = Object.values(updates);
+  db.prepare(`UPDATE users SET ${fields} WHERE id = ?`).run(...values, id);
 }

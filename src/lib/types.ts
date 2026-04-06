@@ -36,6 +36,7 @@ export const FORUM_CATEGORIEEN: ForumCategorie[] = [
 
 export interface ForumReactie {
   id: string;
+  postId: string;
   auteurNaam: string;
   gebruikerId?: string;
   inhoud: string;

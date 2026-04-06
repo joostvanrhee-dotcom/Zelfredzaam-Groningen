@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readUsers, writeUsers, hashPassword } from '@/lib/auth';
+import { hashPassword } from '@/lib/auth';
+import db from '@/lib/db';
+import type { User } from '@/lib/types';
 
 export async function POST(req: NextRequest) {
   const { token, wachtwoord } = await req.json();
@@ -12,29 +14,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Wachtwoord moet minimaal 8 tekens zijn' }, { status: 400 });
   }
 
-  const users = readUsers();
-  const idx = users.findIndex((u) => u.resetToken === token);
+  const user = db.prepare('SELECT * FROM users WHERE resetToken = ?').get(token) as User | undefined;
 
-  if (idx === -1) {
+  if (!user) {
     return NextResponse.json({ error: 'Ongeldige of verlopen link' }, { status: 400 });
   }
 
-  const user = users[idx];
-
-  // Check expiry
   if (user.resetTokenVerloopt && new Date(user.resetTokenVerloopt) < new Date()) {
-    // Clean up expired token
-    users[idx].resetToken = undefined;
-    users[idx].resetTokenVerloopt = undefined;
-    writeUsers(users);
+    db.prepare('UPDATE users SET resetToken = NULL, resetTokenVerloopt = NULL WHERE id = ?').run(user.id);
     return NextResponse.json({ error: 'Deze link is verlopen. Vraag een nieuwe aan.' }, { status: 400 });
   }
 
-  // Update password and clear token
-  users[idx].wachtwoordHash = await hashPassword(wachtwoord);
-  users[idx].resetToken = undefined;
-  users[idx].resetTokenVerloopt = undefined;
-  writeUsers(users);
+  db.prepare('UPDATE users SET wachtwoordHash = ?, resetToken = NULL, resetTokenVerloopt = NULL WHERE id = ?')
+    .run(await hashPassword(wachtwoord), user.id);
 
   return NextResponse.json({ success: true });
 }

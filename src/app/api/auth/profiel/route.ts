@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromRequest, readUsers, writeUsers } from '@/lib/auth';
+import { getUserFromRequest, findUserById, updateUser } from '@/lib/auth';
+import db from '@/lib/db';
 
 export async function PATCH(req: NextRequest) {
   const user = await getUserFromRequest(req);
@@ -9,30 +10,25 @@ export async function PATCH(req: NextRequest) {
 
   const { naam, email } = await req.json();
 
-  const users = readUsers();
-  const idx = users.findIndex((u) => u.id === user.id);
-  if (idx === -1) {
-    return NextResponse.json({ error: 'Gebruiker niet gevonden' }, { status: 404 });
-  }
-
   if (email && email.toLowerCase().trim() !== user.email) {
-    const emailExists = users.some(
-      (u) => u.id !== user.id && u.email.toLowerCase() === email.toLowerCase().trim()
-    );
+    const emailExists = db.prepare('SELECT id FROM users WHERE LOWER(email) = LOWER(?) AND id != ?')
+      .get(email.trim(), user.id);
     if (emailExists) {
       return NextResponse.json({ error: 'Dit e-mailadres is al in gebruik' }, { status: 400 });
     }
-    users[idx].email = email.toLowerCase().trim();
   }
 
-  if (naam && naam.trim()) {
-    users[idx].naam = naam.trim();
+  const updates: Record<string, string> = {};
+  if (naam && naam.trim()) updates.naam = naam.trim();
+  if (email && email.toLowerCase().trim()) updates.email = email.toLowerCase().trim();
+
+  if (Object.keys(updates).length > 0) {
+    updateUser(user.id, updates);
   }
 
-  writeUsers(users);
-
+  const updated = findUserById(user.id)!;
   return NextResponse.json({
     success: true,
-    user: { id: users[idx].id, naam: users[idx].naam, email: users[idx].email },
+    user: { id: updated.id, naam: updated.naam, email: updated.email },
   });
 }
