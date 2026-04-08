@@ -125,7 +125,7 @@ export default function KaartPage() {
                 Filters
                 {(selectedPdfFilters.length > 0 || filterGemeente) && (
                   <span className="bg-white text-[#829362] text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
-                    {(selectedPdfFilters.length > 0 ? 1 : 0) + (filterGemeente ? 1 : 0)}
+                    {selectedPdfFilters.length + (filterGemeente ? 1 : 0)}
                   </span>
                 )}
               </button>
@@ -204,8 +204,14 @@ export default function KaartPage() {
           {/* Results list */}
           <div className="flex-1 min-h-0 overflow-y-auto">
             {filtered.length === 0 && (
-              <div className="p-4 text-sm text-gray-400">
-                Geen resultaten voor de huidige filters.
+              <div className="p-8 text-center">
+                <div className="w-12 h-12 bg-[#9cc47c]/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-6 h-6 text-[#9cc47c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
+                  </svg>
+                </div>
+                <p className="text-sm font-medium text-gray-500">Geen resultaten</p>
+                <p className="text-xs text-gray-400 mt-1">Probeer andere filters of een andere gemeente.</p>
               </div>
             )}
 

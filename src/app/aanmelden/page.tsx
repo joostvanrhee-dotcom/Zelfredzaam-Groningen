@@ -120,19 +120,19 @@ export default function AanmeldenPage() {
         <Navbar />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center p-8 max-w-md">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-16 h-16 bg-[#9cc47c]/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-[#829362]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
             <h2 className="text-2xl font-bold text-[#829362]">{bevestigingTekst.titel}</h2>
             <p className="mt-2 text-gray-600">{bevestigingTekst.tekst}</p>
-            <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
+            <div className="mt-4 bg-[#9cc47c]/10 border border-[#9cc47c]/30 rounded-lg px-4 py-3">
               <div className="flex items-center gap-2 justify-center">
-                <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-[#829362] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p className="text-sm text-amber-700">
+                <p className="text-sm text-[#829362]">
                   Status: <span className="font-medium">In afwachting van goedkeuring</span>
                 </p>
               </div>
@@ -150,7 +150,7 @@ export default function AanmeldenPage() {
   const gi = geselecteerdInitiatief; // shorthand
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-[#EAF7DE]">
       <Navbar />
 
       <div className="flex-1 max-w-2xl mx-auto w-full px-4 py-8 sm:py-12">

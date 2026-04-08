@@ -182,7 +182,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-[#EAF7DE]">
       <Navbar />
 
       <div className="max-w-5xl mx-auto w-full px-4 py-8">
@@ -309,7 +309,7 @@ export default function AdminPage() {
                       <div className="mt-4 flex gap-2">
                         <button
                           onClick={() => updateStatus(sub.id, 'goedgekeurd')}
-                          className="px-4 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
+                          className="px-4 py-1.5 bg-[#829362] text-white text-sm rounded-lg hover:bg-[#6b7a4f] transition-colors"
                         >
                           Goedkeuren
                         </button>

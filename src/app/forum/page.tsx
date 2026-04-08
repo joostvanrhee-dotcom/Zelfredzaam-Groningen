@@ -19,11 +19,11 @@ function timeAgo(dateStr: string) {
 }
 
 const CATEGORIE_KLEUREN: Record<ForumCategorie, string> = {
-  Hulpvraag: 'bg-orange-100 text-orange-700',
-  Gezocht: 'bg-blue-100 text-blue-700',
-  Aanbod: 'bg-green-100 text-green-700',
-  Juridisch: 'bg-purple-100 text-purple-700',
-  Vrijwilligers: 'bg-yellow-100 text-yellow-700',
+  Hulpvraag: 'bg-[#9cc47c]/20 text-[#4a6330]',
+  Gezocht: 'bg-[#829362]/15 text-[#3d4f2a]',
+  Aanbod: 'bg-[#9cc47c]/30 text-[#3d4f2a]',
+  Juridisch: 'bg-[#6b7a4f]/15 text-[#3d4f2a]',
+  Vrijwilligers: 'bg-[#9cc47c]/10 text-[#4a6330]',
   Overig: 'bg-gray-100 text-gray-600',
 };
 
@@ -209,7 +209,7 @@ export default function ForumPage() {
   const filteredPosts = filter === 'alle' ? posts : posts.filter((p) => p.categorie === filter);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-[#EAF7DE]">
       <Navbar />
 
       <div className="flex-1 max-w-3xl mx-auto w-full px-4 py-8 sm:py-12">
@@ -234,7 +234,7 @@ export default function ForumPage() {
 
         {/* Success message */}
         {successMsg && (
-          <div className="mt-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+          <div className="mt-4 bg-[#9cc47c]/10 border border-[#9cc47c]/30 text-[#829362] px-4 py-3 rounded-lg text-sm flex items-center gap-2">
             <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>

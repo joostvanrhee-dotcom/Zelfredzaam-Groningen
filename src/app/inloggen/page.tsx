@@ -41,7 +41,7 @@ export default function InloggenPage() {
   return (
     <>
       <Navbar />
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gray-50 px-4">
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-[#EAF7DE] px-4">
         <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
             <h1 className="text-2xl font-bold text-[#829362] mb-6">Inloggen</h1>
