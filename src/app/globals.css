@@ -48,6 +48,28 @@ img.leaflet-tile {
   will-change: auto !important;
 }
 
+/* Leaflet popup custom styling */
+.zg-popup .leaflet-popup-content-wrapper {
+  padding: 0;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  border: none;
+  overflow: hidden;
+}
+.zg-popup .leaflet-popup-content {
+  margin: 0;
+  width: auto !important;
+}
+.zg-popup .leaflet-popup-tip-container {
+  display: none;
+}
+
+/* MarkerCluster styling */
+.leaflet-cluster-anim .leaflet-marker-icon,
+.leaflet-cluster-anim .leaflet-marker-shadow {
+  transition: transform 0.3s ease-out, opacity 0.3s ease-in;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

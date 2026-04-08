@@ -58,19 +58,55 @@ export function getMarkerLocation(item: Initiatief): {
   return { coords: [53.22, 6.57], type: 'onbekend' };
 }
 
+function buildPopupHtml(item: Initiatief, color: string): string {
+  const website = item.website
+    ? `<a href="${item.website.startsWith('http') ? item.website : 'https://' + item.website}" target="_blank" rel="noopener"
+        style="display:inline-flex;align-items:center;gap:4px;color:${color};font-size:12px;text-decoration:none;font-weight:500;">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        Website
+      </a>`
+    : '';
+  const telefoon = item.telefoon
+    ? `<span style="display:inline-flex;align-items:center;gap:4px;color:#6b7280;font-size:12px;">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.1 1.18 2 2 0 012.11 0h3a2 2 0 012 1.72c.12.96.36 1.9.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.91.34 1.85.58 2.81.7A2 2 0 0122 14.9v2.02z"/></svg>
+        ${item.telefoon}
+      </span>`
+    : '';
+  const beschrijving = item.beschrijving
+    ? `<p style="margin:8px 0 0;font-size:12px;color:#4b5563;line-height:1.5;">${item.beschrijving.substring(0, 160)}${item.beschrijving.length > 160 ? '…' : ''}</p>`
+    : '';
+  const meta = [
+    item.gemeente ? `<span style="color:#6b7280;font-size:11px;">📍 ${item.gemeente}${item.adres ? ' · ' + item.adres : ''}</span>` : '',
+  ].filter(Boolean).join('');
+
+  return `
+    <div style="min-width:220px;max-width:300px;font-family:system-ui,sans-serif;">
+      <div style="background:${color};border-radius:10px 10px 0 0;padding:12px 14px;margin:-1px -1px 0;">
+        <div style="font-size:11px;background:rgba(255,255,255,0.25);color:white;display:inline-block;padding:2px 8px;border-radius:20px;font-weight:600;margin-bottom:4px;">${item.type}</div>
+        <h3 style="margin:0;font-size:14px;font-weight:700;color:white;line-height:1.3;">${item.naam}</h3>
+      </div>
+      <div style="padding:10px 14px 12px;background:white;border-radius:0 0 10px 10px;border:1px solid #e5e7eb;border-top:none;">
+        ${meta ? `<div style="margin-bottom:6px;">${meta}</div>` : ''}
+        ${beschrijving}
+        ${website || telefoon ? `<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">${website}${telefoon}</div>` : ''}
+      </div>
+    </div>`;
+}
+
 export default function Map({ initiatieven, selectedId, onSelect, fromList, markerColors }: MapProps) {
   const [mapReady, setMapReady] = useState(false);
   const mapInstanceRef = useRef<any>(null);
   const markersMapRef = useRef<Record<number, any>>({});
+  const clusterGroupRef = useRef<any>(null);
   const lastListPanTargetRef = useRef<number | null>(null);
 
-  // Single effect: init map once, update markers when data changes
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
       try {
         const L = (await import('leaflet')).default;
+        await import('leaflet.markercluster');
         if (cancelled) return;
 
         const container = document.getElementById('map-container');
@@ -95,8 +131,6 @@ export default function Map({ initiatieven, selectedId, onSelect, fromList, mark
 
           mapInstanceRef.current = map;
 
-          // Leaflet geeft vaak een "leeg" canvas als de container initieel geen hoogte heeft.
-          // invalidateSize forceert een herberekening zodra de layout is gezet.
           requestAnimationFrame(() => {
             if (cancelled) return;
             setTimeout(() => {
@@ -109,17 +143,50 @@ export default function Map({ initiatieven, selectedId, onSelect, fromList, mark
 
         const map = mapInstanceRef.current;
 
-        // --- UPDATE MARKERS (when initiatieven change) ---
+        // --- UPDATE MARKERS ---
         const makeIcon = (color: string) => L.divIcon({
-          className: 'custom-marker',
-          html: `<div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;"><div style="width:16px;height:16px;background:${color};border:2px solid white;border-radius:50%;"></div></div>`,
-          iconSize: [40, 40],
-          iconAnchor: [20, 20],
+          className: '',
+          html: `<div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;">
+            <div style="width:14px;height:14px;background:${color};border:2.5px solid white;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.25);"></div>
+          </div>`,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
         });
 
-        // Remove old markers
-        Object.values(markersMapRef.current).forEach((m: any) => map.removeLayer(m));
+        // Remove old cluster group
+        if (clusterGroupRef.current) {
+          map.removeLayer(clusterGroupRef.current);
+        }
         markersMapRef.current = {};
+
+        // Create new cluster group
+        const LTyped = L as any;
+        const clusterGroup = LTyped.markerClusterGroup({
+          maxClusterRadius: 40,
+          spiderfyOnMaxZoom: true,
+          showCoverageOnHover: false,
+          iconCreateFunction: (cluster: any) => {
+            const count = cluster.getChildCount();
+            const markers = cluster.getAllChildMarkers();
+            // Use the most common color in the cluster
+            const colorCounts: Record<string, number> = {};
+            markers.forEach((m: any) => {
+              const c = m.options._color || '#9cc47c';
+              colorCounts[c] = (colorCounts[c] || 0) + 1;
+            });
+            const dominantColor = Object.entries(colorCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '#9cc47c';
+            return LTyped.divIcon({
+              className: '',
+              html: `<div style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
+                <div style="width:36px;height:36px;background:${dominantColor};border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;">
+                  <span style="color:white;font-size:11px;font-weight:700;font-family:system-ui,sans-serif;">${count}</span>
+                </div>
+              </div>`,
+              iconSize: [36, 36],
+              iconAnchor: [18, 18],
+            });
+          },
+        });
 
         initiatieven.forEach((item) => {
           const loc = getMarkerLocation(item);
@@ -127,49 +194,39 @@ export default function Map({ initiatieven, selectedId, onSelect, fromList, mark
 
           const color = (markerColors && markerColors[item.id]) || '#9cc47c';
           const icon = makeIcon(color);
-          const marker = L.marker(loc.coords, { icon }).addTo(map);
+          const marker = L.marker(loc.coords, { icon, _color: color } as any);
 
-          const locationNote =
-            loc.type === 'bijBenadering'
-              ? '<p style="margin:4px 0 0;font-size:11px;color:#9cc47c;">ℹ️ Locatie bij benadering</p>'
-              : '';
-
-          marker.bindPopup(
-            `<div style="min-width:200px;max-width:300px;">
-              <h3 style="margin:0 0 4px;font-weight:600;color:#829362;font-size:14px;">${item.naam}</h3>
-              <div style="display:inline-block;background:#9cc47c;color:white;padding:1px 8px;border-radius:12px;font-size:11px;margin-bottom:6px;">${item.type}</div>
-              <p style="margin:6px 0 4px;font-size:12px;color:#555;line-height:1.4;">${item.beschrijving ? item.beschrijving.substring(0, 150) + (item.beschrijving.length > 150 ? '...' : '') : ''}</p>
-              ${item.gemeente ? `<p style="margin:2px 0;font-size:11px;color:#888;">📍 ${item.gemeente}</p>` : ''}
-              ${item.adres ? `<p style="margin:2px 0;font-size:11px;color:#888;">${item.adres}</p>` : ''}
-              ${locationNote}
-              ${item.website ? `<p style="margin:4px 0 0;"><a href="${item.website.startsWith('http') ? item.website : 'https://' + item.website}" target="_blank" rel="noopener" style="color:#9cc47c;font-size:11px;">🌐 Website</a></p>` : ''}
-              ${item.telefoon ? `<p style="margin:2px 0;font-size:11px;color:#888;">📞 ${item.telefoon}</p>` : ''}
-              ${item.email ? `<p style="margin:2px 0;font-size:11px;color:#888;">✉️ ${item.email}</p>` : ''}
-            </div>`,
-            { maxWidth: 300 }
-          );
+          marker.bindPopup(buildPopupHtml(item, color), {
+            maxWidth: 310,
+            className: 'zg-popup',
+          });
 
           marker.on('click', () => {
             marker.openPopup();
             onSelect(item);
           });
 
+          clusterGroup.addLayer(marker);
           markersMapRef.current[item.id] = marker;
         });
 
-        // --- HANDLE SELECTION from list (pan, no zoom) ---
+        map.addLayer(clusterGroup);
+        clusterGroupRef.current = clusterGroup;
+
+        // --- HANDLE SELECTION from list ---
         if (!fromList) {
           lastListPanTargetRef.current = null;
         }
 
         if (selectedId && fromList && markersMapRef.current[selectedId] && lastListPanTargetRef.current !== selectedId) {
           const m = markersMapRef.current[selectedId];
-          map.panTo(m.getLatLng(), { animate: true });
-          setTimeout(() => m.openPopup(), 300);
+          // Zoom out cluster if needed
+          clusterGroup.zoomToShowLayer(m, () => {
+            m.openPopup();
+          });
           lastListPanTargetRef.current = selectedId;
         }
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.error('Leaflet init/update failed:', err);
       }
     })();

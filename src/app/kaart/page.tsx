@@ -14,6 +14,62 @@ import type { Initiatief } from '@/lib/types';
 // Leaflet must be loaded client-side only
 const Map = dynamic(() => import('@/components/Map'), { ssr: false });
 
+function SdgLegenda({
+  markerColors,
+  filtered,
+  pdfFiltersByInitiatiefId,
+}: {
+  markerColors: Record<number, string>;
+  filtered: Initiatief[];
+  pdfFiltersByInitiatiefId: globalThis.Map<number, PdfFilterId[]>;
+}) {
+  const [open, setOpen] = useState(true);
+
+  // Only show SDGs that are actually present in the filtered initiatives
+  const activeSdgs = useMemo(() => {
+    const usedColors = new Set(filtered.map((i) => markerColors[i.id]).filter(Boolean));
+    return SDG_FILTERS.filter((f) => f.color && usedColors.has(f.color));
+  }, [filtered, markerColors]);
+
+  if (activeSdgs.length === 0) return null;
+
+  return (
+    <div className="absolute bottom-6 left-3 z-[1000]">
+      <div className="bg-white/95 backdrop-blur shadow-lg rounded-xl border border-gray-200 overflow-hidden">
+        <button
+          onClick={() => setOpen((o) => !o)}
+          className="flex items-center gap-2 px-3 py-2 w-full text-left hover:bg-gray-50 transition-colors"
+        >
+          <span className="text-xs font-semibold text-[#829362]">SDG-legenda</span>
+          <svg
+            className={`w-3.5 h-3.5 text-gray-400 ml-auto transition-transform ${open ? 'rotate-180' : ''}`}
+            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {open && (
+          <div className="px-3 pb-2.5 space-y-1.5 max-h-48 overflow-y-auto">
+            {activeSdgs.map((f) => (
+              <div key={f.id} className="flex items-center gap-2">
+                <span
+                  className="w-3 h-3 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: f.color }}
+                />
+                <span className="text-[11px] text-gray-600 leading-tight">{f.label}</span>
+              </div>
+            ))}
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full flex-shrink-0 bg-[#9cc47c]" />
+              <span className="text-[11px] text-gray-400 leading-tight">Geen SDG-match</span>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function KaartPage() {
   const searchParams = useSearchParams();
   const initialId = searchParams.get('id') ? Number(searchParams.get('id')) : null;
@@ -261,6 +317,9 @@ export default function KaartPage() {
             fromList={fromList}
             markerColors={markerColors}
           />
+
+          {/* SDG Legend */}
+          <SdgLegenda markerColors={markerColors} filtered={filtered} pdfFiltersByInitiatiefId={pdfFiltersByInitiatiefId} />
 
           {/* Province-wide initiatives banner */}
           {heleProvincie.length > 0 && !showProvincieBanner && (
