@@ -64,10 +64,24 @@ img.leaflet-tile {
   display: none;
 }
 
-/* MarkerCluster styling */
+/* MarkerCluster smooth animations */
 .leaflet-cluster-anim .leaflet-marker-icon,
 .leaflet-cluster-anim .leaflet-marker-shadow {
-  transition: transform 0.3s ease-out, opacity 0.3s ease-in;
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              opacity 0.4s ease-in-out;
+}
+
+.leaflet-fade-anim .leaflet-popup {
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* Smooth tile fade-in */
+.leaflet-tile {
+  transition: opacity 0.2s ease-in-out !important;
+}
+
+.leaflet-zoom-anim .leaflet-zoom-animated {
+  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 /* Custom scrollbar */

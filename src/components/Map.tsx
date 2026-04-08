@@ -120,8 +120,10 @@ export default function Map({ initiatieven, selectedId, onSelect, fromList, mark
             zoomControl: true,
             doubleClickZoom: false,
             boxZoom: false,
-            fadeAnimation: false,
+            fadeAnimation: true,
             zoomAnimation: true,
+            zoomAnimationThreshold: 4,
+            markerZoomAnimation: true,
           });
 
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -165,6 +167,10 @@ export default function Map({ initiatieven, selectedId, onSelect, fromList, mark
           maxClusterRadius: 40,
           spiderfyOnMaxZoom: true,
           showCoverageOnHover: false,
+          animate: true,
+          animateAddingMarkers: false,
+          spiderfyDistanceMultiplier: 1.5,
+          zoomToBoundsOnClick: true,
           iconCreateFunction: (cluster: any) => {
             const count = cluster.getChildCount();
             const markers = cluster.getAllChildMarkers();
