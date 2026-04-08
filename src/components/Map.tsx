@@ -148,11 +148,11 @@ export default function Map({ initiatieven, selectedId, onSelect, fromList, mark
         // --- UPDATE MARKERS ---
         const makeIcon = (color: string) => L.divIcon({
           className: '',
-          html: `<div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;">
-            <div style="width:14px;height:14px;background:${color};border:2.5px solid white;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.25);"></div>
+          html: `<div style="width:48px;height:48px;display:flex;align-items:center;justify-content:center;">
+            <div style="width:16px;height:16px;background:${color};border:2.5px solid white;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.25);"></div>
           </div>`,
-          iconSize: [32, 32],
-          iconAnchor: [16, 16],
+          iconSize: [48, 48],
+          iconAnchor: [24, 24],
         });
 
         // Remove old cluster group
