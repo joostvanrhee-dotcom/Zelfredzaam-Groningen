@@ -10,6 +10,8 @@ interface MapProps {
   onSelect: (initiatief: Initiatief) => void;
   /** Set to true when selection came from clicking the sidebar list */
   fromList?: boolean;
+  /** Per-initiative marker color, keyed by initiative id */
+  markerColors?: Record<number, string>;
 }
 
 const geocodeCache: Record<string, [number, number]> = {
@@ -56,7 +58,7 @@ export function getMarkerLocation(item: Initiatief): {
   return { coords: [53.22, 6.57], type: 'onbekend' };
 }
 
-export default function Map({ initiatieven, selectedId, onSelect, fromList }: MapProps) {
+export default function Map({ initiatieven, selectedId, onSelect, fromList, markerColors }: MapProps) {
   const [mapReady, setMapReady] = useState(false);
   const mapInstanceRef = useRef<any>(null);
   const markersMapRef = useRef<Record<number, any>>({});
@@ -108,16 +110,9 @@ export default function Map({ initiatieven, selectedId, onSelect, fromList }: Ma
         const map = mapInstanceRef.current;
 
         // --- UPDATE MARKERS (when initiatieven change) ---
-        const preciseIcon = L.divIcon({
+        const makeIcon = (color: string) => L.divIcon({
           className: 'custom-marker',
-          html: '<div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;"><div style="width:16px;height:16px;background:#9cc47c;border:2px solid white;border-radius:50%;"></div></div>',
-          iconSize: [40, 40],
-          iconAnchor: [20, 20],
-        });
-
-        const approxIcon = L.divIcon({
-          className: 'custom-marker-approx',
-          html: '<div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;"><div style="width:16px;height:16px;background:#9cc47c;border:2px solid white;border-radius:50%;"></div></div>',
+          html: `<div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;"><div style="width:16px;height:16px;background:${color};border:2px solid white;border-radius:50%;"></div></div>`,
           iconSize: [40, 40],
           iconAnchor: [20, 20],
         });
@@ -130,7 +125,8 @@ export default function Map({ initiatieven, selectedId, onSelect, fromList }: Ma
           const loc = getMarkerLocation(item);
           if (loc.type === 'onbekend') return;
 
-          const icon = loc.type === 'precies' ? preciseIcon : approxIcon;
+          const color = (markerColors && markerColors[item.id]) || '#9cc47c';
+          const icon = makeIcon(color);
           const marker = L.marker(loc.coords, { icon }).addTo(map);
 
           const locationNote =
@@ -179,7 +175,7 @@ export default function Map({ initiatieven, selectedId, onSelect, fromList }: Ma
     })();
 
     return () => { cancelled = true; };
-  }, [initiatieven, selectedId, fromList, onSelect]);
+  }, [initiatieven, selectedId, fromList, onSelect, markerColors]);
 
   // Cleanup on unmount
   useEffect(() => {

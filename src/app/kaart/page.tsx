@@ -7,7 +7,7 @@ import Navbar from '@/components/Navbar';
 import SearchBar from '@/components/SearchBar';
 import { initiatieven, gemeenten, getGemeente } from '@/lib/data';
 import { getMarkerLocation } from '@/components/Map';
-import { PDF_FILTERS, PDF_FILTER_GROUPS, type PdfFilterId } from '@/lib/pdfFilters';
+import { PDF_FILTERS, PDF_FILTER_GROUPS, SDG_FILTERS, type PdfFilterId, type PdfFilter } from '@/lib/pdfFilters';
 import { getPdfFilterIdsForInitiatief } from '@/lib/pdfTagging';
 import type { Initiatief } from '@/lib/types';
 
@@ -26,7 +26,7 @@ export default function KaartPage() {
       ? (initialFiltersParam
           .split(',')
           .map((s) => s.trim())
-          .filter((id): id is PdfFilterId => PDF_FILTERS.some((f) => f.id === id)))
+          .filter((id): id is PdfFilterId => [...PDF_FILTERS, ...SDG_FILTERS].some((f) => f.id === id)))
       : []
   );
   const [showFilters, setShowFilters] = useState(false);
@@ -38,6 +38,20 @@ export default function KaartPage() {
     });
     return lookup;
   }, []);
+
+  const markerColors = useMemo(() => {
+    const colors: Record<number, string> = {};
+    const selectedSdgFilters = SDG_FILTERS.filter((f: PdfFilter) => f.color && selectedPdfFilters.includes(f.id));
+
+    initiatieven.forEach((i) => {
+      const tags = pdfFiltersByInitiatiefId.get(i.id) || [];
+      // If SDG filters are active, color by the first selected SDG that matches
+      const pool = selectedSdgFilters.length > 0 ? selectedSdgFilters : SDG_FILTERS;
+      const match = (pool as PdfFilter[]).find((f) => f.color && tags.includes(f.id));
+      if (match?.color) colors[i.id] = match.color;
+    });
+    return colors;
+  }, [pdfFiltersByInitiatiefId, selectedPdfFilters]);
 
   const filtered = useMemo(() => {
     let result = initiatieven;
@@ -134,7 +148,18 @@ export default function KaartPage() {
             </div>
 
             {showFilters && (
-              <div className="mt-3 space-y-2">
+              <div className="mt-3 space-y-2 max-h-[50vh] overflow-y-auto pr-1">
+                <select
+                  value={filterGemeente}
+                  onChange={(e) => setFilterGemeente(e.target.value)}
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:border-[#9cc47c] focus:outline-none"
+                >
+                  <option value="">Alle gemeenten</option>
+                  {gemeenten.map((g) => (
+                    <option key={g} value={g}>{g}</option>
+                  ))}
+                </select>
+
                 <div className="space-y-1">
                   <div className="text-[11px] text-gray-500">Onderwerpen (multi)</div>
                   {PDF_FILTER_GROUPS.map((g) => (
@@ -158,6 +183,12 @@ export default function KaartPage() {
                                   });
                                 }}
                               />
+                              {f.color && (
+                                <span
+                                  className="inline-block w-3 h-3 rounded-full flex-shrink-0"
+                                  style={{ backgroundColor: f.color }}
+                                />
+                              )}
                               <span className="truncate">{f.label}</span>
                             </label>
                           );
@@ -166,17 +197,6 @@ export default function KaartPage() {
                     </div>
                   ))}
                 </div>
-
-                <select
-                  value={filterGemeente}
-                  onChange={(e) => setFilterGemeente(e.target.value)}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:border-[#9cc47c] focus:outline-none"
-                >
-                  <option value="">Alle gemeenten</option>
-                  {gemeenten.map((g) => (
-                    <option key={g} value={g}>{g}</option>
-                  ))}
-                </select>
               </div>
             )}
           </div>
@@ -233,6 +253,7 @@ export default function KaartPage() {
             selectedId={selectedId}
             onSelect={handleSelect}
             fromList={fromList}
+            markerColors={markerColors}
           />
 
           {/* Province-wide initiatives banner */}

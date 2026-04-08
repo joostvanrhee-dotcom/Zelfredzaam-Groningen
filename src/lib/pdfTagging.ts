@@ -1,5 +1,5 @@
 import type { Initiatief } from '@/lib/types';
-import { PDF_FILTERS, type PdfFilterId } from '@/lib/pdfFilters';
+import { PDF_FILTERS, SDG_FILTERS, type PdfFilterId } from '@/lib/pdfFilters';
 
 function normalizeText(s: string): string {
   return s
@@ -28,7 +28,7 @@ export function getPdfFilterIdsForInitiatief(item: Initiatief): PdfFilterId[] {
   const text = initiativeText(item);
 
   const matches: PdfFilterId[] = [];
-  for (const f of PDF_FILTERS) {
+  for (const f of [...PDF_FILTERS, ...SDG_FILTERS]) {
     const hit = f.keywords.some((kw) => {
       const k = normalizeText(kw);
       if (!k) return false;
