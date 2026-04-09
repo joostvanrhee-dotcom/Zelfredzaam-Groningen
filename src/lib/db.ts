@@ -13,6 +13,7 @@ function getDb(): Database.Database {
   _db = new Database(path.join(DATA_DIR, 'db.sqlite'));
 
   _db.pragma('journal_mode = WAL');
+  _db.pragma('busy_timeout = 10000');
   _db.pragma('foreign_keys = ON');
 
   _db.exec(`
