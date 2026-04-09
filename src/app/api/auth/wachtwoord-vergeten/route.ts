@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     await transporter.sendMail({
       from: process.env.SMTP_FROM || process.env.SMTP_USER,
       to: user.email,
-      subject: 'Wachtwoord herstellen - Zelfredzaam Groningen',
+      subject: 'Wachtwoord herstellen - Ain Pronkjewail',
       text: `Hallo ${user.naam},\n\nJe hebt een wachtwoord-reset aangevraagd. Klik op de volgende link om je wachtwoord te herstellen:\n\n${resetUrl}\n\nDeze link is 1 uur geldig.\n\nAls je dit niet hebt aangevraagd, kun je deze e-mail negeren.`,
       html: `
         <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">

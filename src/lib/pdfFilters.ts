@@ -75,6 +75,30 @@ export const PDF_FILTERS: PdfFilter[] = [
     groupLabel: 'Categorie',
     keywords: ['ondersteuning', 'hulpverlening', 'sociaal werk', 'maatschappelijk werk', 'wij groningen', 'humanitas', 'gemeente', 'stichting', 'buddy', 'coach', 'begeleiding', 'advies', 'spreekuur', 'loket', 'moskee', 'kerk', 'diaconie', 'religieus'],
   },
+  {
+    id: 'eten_ontmoeting',
+    label: 'Eten en ontmoeting',
+    groupLabel: 'Categorie',
+    keywords: ['samen eten', 'buurtmaaltijd', 'volkskeuken', 'eettafel', 'gratis maaltijd', 'ontmoeting', 'ontmoetingsplek', 'buurthuis', 'dorpshuis', 'thuiskamer', 'inloophuis', 'inloop', 'buurtcafé', 'buurtcentrum', 'wijkcentrum', 'koffie', 'lunch', 'soepkeuken', 'maaltijdservice'],
+  },
+  {
+    id: 'digitaal',
+    label: 'Digitaal',
+    groupLabel: 'Categorie',
+    keywords: ['digitaal', 'computer', 'computerbank', 'laptop', 'internet', 'tablet', 'digibeet', 'digitale hulp', 'online', 'website', 'e-mail', 'smartphone', 'digivaardigheden', 'cursus computer', 'ict'],
+  },
+  {
+    id: 'cultuur',
+    label: 'Cultuur',
+    groupLabel: 'Categorie',
+    keywords: ['cultuur', 'museum', 'theater', 'concert', 'film', 'bioscoop', 'kunst', 'muziek', 'dans', 'bibliotheek', 'lezen', 'boek', 'expositie', 'tentoonstelling', 'cultureel', 'creatief', 'koor', 'toneel'],
+  },
+  {
+    id: 'ruilen_hergebruik',
+    label: 'Ruilen en delen',
+    groupLabel: 'Categorie',
+    keywords: ['ruilen', 'ruilwinkel', 'ruilnetwerk', 'weggeef', 'weggeefwinkel', 'weggeefkast', 'inbrengwinkel', 'tweedehands', 'kringloop', 'hergebruik', 'circulair', 'repair', 'reparatie', 'repair café', 'gratis spullen', 'delen', 'deeleconomie', 'niets-voor-niets'],
+  },
 ];
 
 export const SDG_FILTERS: PdfFilter[] = [

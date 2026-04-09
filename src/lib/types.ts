@@ -13,6 +13,7 @@ export interface Initiatief {
   email: string;
   lat: number | null;
   lng: number | null;
+  pdfFilterIds?: string[];
 }
 
 export interface Submission {

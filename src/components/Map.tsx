@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { Initiatief } from '@/lib/types';
-import { getLocatieType } from '@/lib/location';
 
 interface MapProps {
   initiatieven: Initiatief[];
@@ -43,18 +42,49 @@ const geocodeCache: Record<string, [number, number]> = {
   'Wetsinge': [53.29, 6.53], 'Wedde': [53.08, 7.07], 'Wedderveer': [53.08, 7.05],
   'Veelerveen': [53.05, 7.06], 'Vriescheloo': [53.06, 7.03], 'Wehe-den Hoorn': [53.37, 6.4],
   'Froukemaheerd': [53.25, 6.58],
+  'Oldambt': [53.13, 7.02], 'Westerkwartier': [53.18, 6.3], 'Midden-Groningen': [53.16, 6.77],
+  'Eemsdelta': [53.33, 6.9], 'Het Hogeland': [53.38, 6.55], 'Pekela': [53.09, 7.01],
+  'Veenkoloniën': [53.08, 6.93], 'Westerwolde': [52.98, 7.05],
+  'Groningen stad': [53.2194, 6.5665], 'Groningen (stad)': [53.2194, 6.5665],
+  'stad Groningen': [53.2194, 6.5665],
 };
 
 export type MarkerLocatieType = 'precies' | 'bijBenadering' | 'onbekend';
+
+function parsePlaceNames(gemeente: string): string[] {
+  return gemeente
+    .split(/[\/,\+]/)
+    .map((s) => s.replace(/[\(\[].*?[\)\]]/g, '').trim())
+    .filter(Boolean);
+}
+
+function jitter(id: number): [number, number] {
+  const angle = (id * 137.508) % 360;
+  const radius = 0.0003 + (id % 5) * 0.0001;
+  return [
+    radius * Math.sin((angle * Math.PI) / 180),
+    radius * Math.cos((angle * Math.PI) / 180),
+  ];
+}
+
+const NO_FIXED_ADDRESS = ['via website', 'diverse locatie', 'mobiel door', 'op afspraak',
+  'landelijk', 'provinciaal', 'gehele provincie', 'wisselende', 'postbus',
+  'locatie op aanvraag', 'aan huis', 'thuisbezoek'];
 
 export function getMarkerLocation(item: Initiatief): {
   coords: [number, number];
   type: MarkerLocatieType;
   matchedPlace?: string;
 } {
+  const adresLower = (item.adres || '').toLowerCase();
+  if (NO_FIXED_ADDRESS.some((k) => adresLower.includes(k))) {
+    return { coords: [53.22, 6.57], type: 'onbekend' };
+  }
+
   if (item.lat && item.lng) {
     return { coords: [item.lat, item.lng], type: 'precies' };
   }
+
   return { coords: [53.22, 6.57], type: 'onbekend' };
 }
 
@@ -97,7 +127,7 @@ export default function Map({ initiatieven, selectedId, onSelect, fromList, mark
   const [mapReady, setMapReady] = useState(false);
   const mapInstanceRef = useRef<any>(null);
   const markersMapRef = useRef<Record<number, any>>({});
-  const clusterGroupRef = useRef<any>(null);
+  const markerLayerRef = useRef<any[]>([]);
   const lastListPanTargetRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -106,7 +136,6 @@ export default function Map({ initiatieven, selectedId, onSelect, fromList, mark
     (async () => {
       try {
         const L = (await import('leaflet')).default;
-        await import('leaflet.markercluster');
         if (cancelled) return;
 
         const container = document.getElementById('map-container');
@@ -147,60 +176,26 @@ export default function Map({ initiatieven, selectedId, onSelect, fromList, mark
 
         // --- UPDATE MARKERS ---
         const makeIcon = (color: string) => L.divIcon({
-          className: '',
-          html: `<div style="width:48px;height:48px;display:flex;align-items:center;justify-content:center;">
-            <div style="width:16px;height:16px;background:${color};border:2.5px solid white;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.25);"></div>
-          </div>`,
-          iconSize: [48, 48],
-          iconAnchor: [24, 24],
+          className: 'zg-marker',
+          html: `<div style="width:16px;height:16px;background:${color};border:2.5px solid white;border-radius:50%;"></div>`,
+          iconSize: [16, 16],
+          iconAnchor: [8, 8],
         });
 
-        // Remove old cluster group
-        if (clusterGroupRef.current) {
-          map.removeLayer(clusterGroupRef.current);
-        }
+        // Remove old markers
+        markerLayerRef.current.forEach((m) => map.removeLayer(m));
+        markerLayerRef.current = [];
         markersMapRef.current = {};
 
-        // Create new cluster group
-        const LTyped = L as any;
-        const clusterGroup = LTyped.markerClusterGroup({
-          maxClusterRadius: 40,
-          spiderfyOnMaxZoom: true,
-          showCoverageOnHover: false,
-          animate: true,
-          animateAddingMarkers: false,
-          spiderfyDistanceMultiplier: 1.5,
-          zoomToBoundsOnClick: true,
-          iconCreateFunction: (cluster: any) => {
-            const count = cluster.getChildCount();
-            const markers = cluster.getAllChildMarkers();
-            // Use the most common color in the cluster
-            const colorCounts: Record<string, number> = {};
-            markers.forEach((m: any) => {
-              const c = m.options._color || '#9cc47c';
-              colorCounts[c] = (colorCounts[c] || 0) + 1;
-            });
-            const dominantColor = Object.entries(colorCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '#9cc47c';
-            return LTyped.divIcon({
-              className: '',
-              html: `<div style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
-                <div style="width:36px;height:36px;background:${dominantColor};border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;">
-                  <span style="color:white;font-size:11px;font-weight:700;font-family:system-ui,sans-serif;">${count}</span>
-                </div>
-              </div>`,
-              iconSize: [36, 36],
-              iconAnchor: [18, 18],
-            });
-          },
-        });
-
+        // Place each marker at its exact geocoded coordinate
         initiatieven.forEach((item) => {
           const loc = getMarkerLocation(item);
           if (loc.type === 'onbekend') return;
 
+          const [lat, lng] = loc.coords;
           const color = (markerColors && markerColors[item.id]) || '#9cc47c';
           const icon = makeIcon(color);
-          const marker = L.marker(loc.coords, { icon, _color: color } as any);
+          const marker = L.marker([lat, lng], { icon } as any);
 
           marker.bindPopup(buildPopupHtml(item, color), {
             maxWidth: 310,
@@ -212,12 +207,10 @@ export default function Map({ initiatieven, selectedId, onSelect, fromList, mark
             onSelect(item);
           });
 
-          clusterGroup.addLayer(marker);
+          marker.addTo(map);
+          markerLayerRef.current.push(marker);
           markersMapRef.current[item.id] = marker;
         });
-
-        map.addLayer(clusterGroup);
-        clusterGroupRef.current = clusterGroup;
 
         // --- HANDLE SELECTION from list ---
         if (!fromList) {
@@ -226,10 +219,8 @@ export default function Map({ initiatieven, selectedId, onSelect, fromList, mark
 
         if (selectedId && fromList && markersMapRef.current[selectedId] && lastListPanTargetRef.current !== selectedId) {
           const m = markersMapRef.current[selectedId];
-          // Zoom out cluster if needed
-          clusterGroup.zoomToShowLayer(m, () => {
-            m.openPopup();
-          });
+          map.panTo(m.getLatLng());
+          m.openPopup();
           lastListPanTargetRef.current = selectedId;
         }
       } catch (err) {
@@ -252,7 +243,7 @@ export default function Map({ initiatieven, selectedId, onSelect, fromList, mark
 
   return (
     <div className="relative w-full h-full min-h-[320px]">
-      <div id="map-container" className="absolute inset-0" />
+      <div id="map-container" className="absolute inset-0 min-h-[200px]" />
       {!mapReady && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
           <div className="text-gray-400">Kaart laden...</div>

@@ -59,15 +59,15 @@ async function sendStatusEmail(sub: SubmissionRow) {
 
   const bodyText = isGoedgekeurd
     ? `Beste ${sub.indienerNaam},\n\nGoed nieuws! Je ${soortLabel} voor "${sub.naam}" is goedgekeurd.\n\n${
-        sub.soort === 'nieuw' ? 'Het initiatief is nu zichtbaar op de kaart van Zelfredzaam Groningen.'
+        sub.soort === 'nieuw' ? 'Het initiatief is nu zichtbaar op de kaart van Ain Pronkjewail.'
         : sub.soort === 'wijziging' ? 'De wijzigingen zijn doorgevoerd.'
         : 'Het initiatief is van de kaart verwijderd.'
-      }\n\nMet vriendelijke groet,\nZelfredzaam Groningen`
-    : `Beste ${sub.indienerNaam},\n\nHelaas is je ${soortLabel} voor "${sub.naam}" afgewezen.\n\nAls je vragen hebt, neem dan contact met ons op.\n\nMet vriendelijke groet,\nZelfredzaam Groningen`;
+      }\n\nMet vriendelijke groet,\nAin Pronkjewail`
+    : `Beste ${sub.indienerNaam},\n\nHelaas is je ${soortLabel} voor "${sub.naam}" afgewezen.\n\nAls je vragen hebt, neem dan contact met ons op.\n\nMet vriendelijke groet,\nAin Pronkjewail`;
 
   const htmlBody = isGoedgekeurd
-    ? `<div style="font-family:sans-serif;max-width:500px;margin:0 auto"><div style="background:#829362;color:white;padding:20px;border-radius:12px 12px 0 0;text-align:center"><h2 style="margin:0">✅ Goedgekeurd</h2></div><div style="padding:24px;background:#f9fafb;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px"><p>Beste ${sub.indienerNaam},</p><p>Je <strong>${soortLabel}</strong> voor <strong>"${sub.naam}"</strong> is <span style="color:#16a34a;font-weight:bold">goedgekeurd</span>.</p><p>${sub.soort === 'nieuw' ? 'Het initiatief is nu zichtbaar op de kaart.' : sub.soort === 'wijziging' ? 'De wijzigingen zijn doorgevoerd.' : 'Het initiatief is verwijderd.'}</p><p style="color:#6b7280;font-size:14px">Met vriendelijke groet,<br/>Zelfredzaam Groningen</p></div></div>`
-    : `<div style="font-family:sans-serif;max-width:500px;margin:0 auto"><div style="background:#dc2626;color:white;padding:20px;border-radius:12px 12px 0 0;text-align:center"><h2 style="margin:0">❌ Afgewezen</h2></div><div style="padding:24px;background:#f9fafb;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px"><p>Beste ${sub.indienerNaam},</p><p>Je <strong>${soortLabel}</strong> voor <strong>"${sub.naam}"</strong> is <span style="color:#dc2626;font-weight:bold">afgewezen</span>.</p><p>Als je vragen hebt, neem dan contact met ons op.</p><p style="color:#6b7280;font-size:14px">Met vriendelijke groet,<br/>Zelfredzaam Groningen</p></div></div>`;
+    ? `<div style="font-family:sans-serif;max-width:500px;margin:0 auto"><div style="background:#829362;color:white;padding:20px;border-radius:12px 12px 0 0;text-align:center"><h2 style="margin:0">✅ Goedgekeurd</h2></div><div style="padding:24px;background:#f9fafb;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px"><p>Beste ${sub.indienerNaam},</p><p>Je <strong>${soortLabel}</strong> voor <strong>"${sub.naam}"</strong> is <span style="color:#16a34a;font-weight:bold">goedgekeurd</span>.</p><p>${sub.soort === 'nieuw' ? 'Het initiatief is nu zichtbaar op de kaart.' : sub.soort === 'wijziging' ? 'De wijzigingen zijn doorgevoerd.' : 'Het initiatief is verwijderd.'}</p><p style="color:#6b7280;font-size:14px">Met vriendelijke groet,<br/>Ain Pronkjewail</p></div></div>`
+    : `<div style="font-family:sans-serif;max-width:500px;margin:0 auto"><div style="background:#dc2626;color:white;padding:20px;border-radius:12px 12px 0 0;text-align:center"><h2 style="margin:0">❌ Afgewezen</h2></div><div style="padding:24px;background:#f9fafb;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px"><p>Beste ${sub.indienerNaam},</p><p>Je <strong>${soortLabel}</strong> voor <strong>"${sub.naam}"</strong> is <span style="color:#dc2626;font-weight:bold">afgewezen</span>.</p><p>Als je vragen hebt, neem dan contact met ons op.</p><p style="color:#6b7280;font-size:14px">Met vriendelijke groet,<br/>Ain Pronkjewail</p></div></div>`;
 
   try {
     await transporter.sendMail({ from: process.env.SMTP_FROM || process.env.SMTP_USER, to: sub.indienerEmail, subject, text: bodyText, html: htmlBody });
@@ -144,14 +144,13 @@ export async function PATCH(req: NextRequest) {
         let lng: number | null = null;
         if (sub.adres && sub.gemeente) {
           try {
-            const q = encodeURIComponent(`${sub.adres}, ${sub.postcode || ''} ${sub.gemeente}, Netherlands`);
-            const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&countrycodes=nl&limit=1`, {
-              headers: { 'User-Agent': 'ZelfredzaamGroningen/1.0' },
-            });
+            const q = encodeURIComponent(`${sub.adres} ${sub.postcode || ''} ${sub.gemeente} Netherlands`);
+            const geoRes = await fetch(`https://photon.komoot.io/api/?q=${q}&limit=1`);
             const geoData = await geoRes.json();
-            if (geoData.length > 0) {
-              lat = parseFloat(geoData[0].lat);
-              lng = parseFloat(geoData[0].lon);
+            if (geoData.features?.length > 0) {
+              const [pLng, pLat] = geoData.features[0].geometry.coordinates;
+              lat = pLat;
+              lng = pLng;
             }
           } catch { /* geocoding failed */ }
         }
@@ -181,12 +180,14 @@ export async function PATCH(req: NextRequest) {
           if (sub.emailInitiatief !== undefined) updated.email = sub.emailInitiatief;
           if (sub.adres && sub.gemeente) {
             try {
-              const q = encodeURIComponent(`${sub.adres}, ${sub.postcode || ''} ${sub.gemeente}, Netherlands`);
-              const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&countrycodes=nl&limit=1`, {
-                headers: { 'User-Agent': 'ZelfredzaamGroningen/1.0' },
-              });
+              const q = encodeURIComponent(`${sub.adres} ${sub.postcode || ''} ${sub.gemeente} Netherlands`);
+              const geoRes = await fetch(`https://photon.komoot.io/api/?q=${q}&limit=1`);
               const geoData = await geoRes.json();
-              if (geoData.length > 0) { updated.lat = parseFloat(geoData[0].lat); updated.lng = parseFloat(geoData[0].lon); }
+              if (geoData.features?.length > 0) {
+                const [pLng, pLat] = geoData.features[0].geometry.coordinates;
+                updated.lat = pLat;
+                updated.lng = pLng;
+              }
             } catch { /* geocoding failed */ }
           }
           initiatieven[idx] = updated;

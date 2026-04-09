@@ -18,10 +18,12 @@ function SdgLegenda({
   markerColors,
   filtered,
   pdfFiltersByInitiatiefId,
+  hasSelection,
 }: {
   markerColors: Record<number, string>;
   filtered: Initiatief[];
   pdfFiltersByInitiatiefId: globalThis.Map<number, PdfFilterId[]>;
+  hasSelection?: boolean;
 }) {
   const [open, setOpen] = useState(true);
 
@@ -34,7 +36,7 @@ function SdgLegenda({
   if (activeSdgs.length === 0) return null;
 
   return (
-    <div className="absolute bottom-6 left-3 z-[1000]">
+    <div className={`absolute ${hasSelection ? 'bottom-28 lg:bottom-6' : 'bottom-6'} left-3 z-[1000]`}>
       <div className="bg-white/95 backdrop-blur shadow-lg rounded-xl border border-gray-200 overflow-hidden">
         <button
           onClick={() => setOpen((o) => !o)}
@@ -157,7 +159,7 @@ export default function KaartPage() {
 
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
         {/* Sidebar */}
-        <aside className="w-full lg:w-96 bg-white border-r border-gray-100 flex flex-col overflow-hidden z-10">
+        <aside className="w-full max-h-[45vh] lg:max-h-none lg:w-96 bg-white border-r border-gray-100 flex flex-col overflow-hidden z-10">
           {/* Search + Filters */}
           <div className="p-4 border-b border-gray-100">
             <SearchBar
@@ -298,7 +300,7 @@ export default function KaartPage() {
               >
                 <span className="text-base">🌍</span>
                 <span className="text-sm text-[#829362] font-medium">
-                  {heleProvincie.length} provinciebrede initiatieven
+                  {heleProvincie.length} zonder vaste locatie / meerdere locaties
                 </span>
                 <svg className="w-3.5 h-3.5 text-[#9cc47c] ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -319,7 +321,7 @@ export default function KaartPage() {
           />
 
           {/* SDG Legend */}
-          <SdgLegenda markerColors={markerColors} filtered={filtered} pdfFiltersByInitiatiefId={pdfFiltersByInitiatiefId} />
+          <SdgLegenda markerColors={markerColors} filtered={filtered} pdfFiltersByInitiatiefId={pdfFiltersByInitiatiefId} hasSelection={!!selectedItem} />
 
           {/* Province-wide initiatives banner */}
           {heleProvincie.length > 0 && !showProvincieBanner && (
@@ -336,12 +338,12 @@ export default function KaartPage() {
 
           {/* Province-wide initiatives expanded card */}
           {showProvincieBanner && heleProvincie.length > 0 && (
-            <div className="absolute top-3 right-3 z-[1000] bg-white/95 backdrop-blur shadow-xl rounded-xl border border-gray-200 w-80 max-h-[70vh] flex flex-col">
+            <div className="absolute top-3 right-3 left-3 lg:left-auto lg:w-80 z-[1000] bg-white/95 backdrop-blur shadow-xl rounded-xl border border-gray-200 max-h-[60vh] flex flex-col">
               <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
                 <div className="flex items-center gap-2">
                   <span className="text-base">🌍</span>
                   <span className="text-sm font-semibold text-[#829362]">
-                    Provinciebrede initiatieven
+                    Zonder vaste locatie / meerdere locaties
                   </span>
                   <span className="text-[10px] bg-[#9cc47c] text-white px-1.5 py-0.5 rounded-full">
                     {heleProvincie.length}
@@ -358,7 +360,7 @@ export default function KaartPage() {
                 </button>
               </div>
               <p className="px-4 py-2 text-[11px] text-gray-400">
-                Deze initiatieven zijn actief in de hele provincie Groningen en niet aan één locatie gebonden.
+                Deze initiatieven hebben geen vaste locatie of zijn actief op meerdere locaties.
               </p>
               <div className="flex-1 overflow-y-auto min-h-0">
                 {heleProvincie.map((item) => (
@@ -402,7 +404,7 @@ export default function KaartPage() {
                   {selectedItem.type}
                 </span>
                 {heleProvincie.some((i) => i.id === selectedItem.id) && (
-                  <span className="text-[10px] text-[#9cc47c]">🌍 Hele provincie</span>
+                  <span className="text-[10px] text-[#9cc47c]">📍 Meerdere locaties</span>
                 )}
               </div>
               {selectedItem.beschrijving && (

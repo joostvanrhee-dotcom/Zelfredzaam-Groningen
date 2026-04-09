@@ -29,10 +29,31 @@ img.leaflet-tile {
   transition: none !important;
 }
 
-.leaflet-marker-icon {
+.leaflet-marker-icon,
+.leaflet-marker-icon:focus,
+.leaflet-marker-icon:focus-visible,
+.leaflet-marker-icon:active {
   opacity: 1 !important;
   background: transparent !important;
   border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  ring: none !important;
+}
+
+.zg-marker,
+.zg-marker:focus,
+.zg-marker:focus-visible,
+.zg-marker:active {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.leaflet-marker-pane *:focus,
+.leaflet-marker-pane *:focus-visible {
+  outline: none !important;
   box-shadow: none !important;
 }
 

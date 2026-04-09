@@ -20,7 +20,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2">
             <span className="font-semibold text-[#829362] text-lg">
-              <span className="hidden sm:inline">Zelfredzaam Groningen</span>
+              <span className="hidden sm:inline">Ain Pronkjewail</span>
               <span className="sm:hidden">ZG</span>
             </span>
           </Link>

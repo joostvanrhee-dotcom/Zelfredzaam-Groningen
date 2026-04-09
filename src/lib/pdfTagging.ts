@@ -25,8 +25,13 @@ function initiativeText(item: Initiatief): string {
 }
 
 export function getPdfFilterIdsForInitiatief(item: Initiatief): PdfFilterId[] {
-  const text = initiativeText(item);
+  // Use explicitly assigned filters if available (set via aanmeldformulier or admin)
+  if (item.pdfFilterIds && item.pdfFilterIds.length > 0) {
+    return item.pdfFilterIds;
+  }
 
+  // Fallback: keyword-based auto-detection
+  const text = initiativeText(item);
   const matches: PdfFilterId[] = [];
   for (const f of [...PDF_FILTERS, ...SDG_FILTERS]) {
     const hit = f.keywords.some((kw) => {

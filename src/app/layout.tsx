@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Zelfredzaam Groningen — Initiatieven in Groningen",
+  title: "Ain Pronkjewail — Samen Sterker tegen Armoede",
   description:
     "Een overzicht van alle formele en informele initiatieven tegen armoede in de provincie Groningen. Doorzoekbaar, op de kaart, en voor iedereen toegankelijk.",
 };
